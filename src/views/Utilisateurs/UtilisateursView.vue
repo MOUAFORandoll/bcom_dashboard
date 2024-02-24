@@ -292,8 +292,12 @@ const copyText = (missionE) => {
     v-if="_seletUser != null"
     title="Affecter la mission"
   >
-    <FormField label="Dropdown">
-      <FormControl v-model="mission" :options="listMissions" />
+    <FormField label="Selectionner une mission">
+      <FormControl
+        placeholder="Selectionner une mission"
+        v-model="mission"
+        :options="listMissions"
+      />
     </FormField>
 
     <BaseButton
