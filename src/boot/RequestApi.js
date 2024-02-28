@@ -44,6 +44,42 @@ export class RequestApi {
       });
     return dataRes;
   };
+  /**
+   *
+   *
+   * Start  Mission
+   *
+   *
+   */
+  /**
+   *
+   * @param {*}
+   * @returns
+   */
+  NewControllerBureau = async (data) => {
+    // //console.log('sdddsd');
+    let dataRes = { status: true };
+
+    await api
+      .post(this.ApiEndPoint.cbureau, data)
+      .then(async (response) => {
+        if (response.status == 201 || response.status == 200) {
+          dataRes = {
+            status: true,
+          };
+        } else {
+          dataRes = {
+            status: false,
+          };
+        }
+      })
+      .catch(() => {
+        dataRes = {
+          status: false,
+        };
+      });
+    return dataRes;
+  };
 
   /**
    *

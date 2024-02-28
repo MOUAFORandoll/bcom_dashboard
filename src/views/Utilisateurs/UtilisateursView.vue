@@ -39,6 +39,7 @@ let request = new RequestApi();
 const isModalActive = ref(false);
 const isModalPassword = ref(false);
 const isModalStateUser = ref(false);
+const isModalCreateCB = ref(false);
 const perPage = ref(5);
 const currentPage = ref(0);
 let listUsers = ref([]);
@@ -50,9 +51,31 @@ let listUsersSave = ref([]);
 let loading = ref(true);
 let loadingUpdate = ref(false);
 let reloading = ref(true);
-let produits = ref([]);
+let name = ref("");
+let phone = ref("");
+let password = ref("");
 const mainStore = useMainStore();
 
+async function creerController() {
+  let data = {
+    name: name.value,
+    phone: phone.value,
+    password: password.value,
+  };
+  loading.value = true;
+  const response = await request.NewControllerBureau(data);
+  if (response.status) {
+    toast.success("Succes !", {
+      autoClose: 2000,
+    });
+    loading.value = false;
+  } else {
+    toast.error("Une erreur est survenue !", {
+      autoClose: 2000,
+    });
+    loading.value = false;
+  }
+}
 async function getListBiker() {
   const response = await request.getListBiker();
   if (response.status) {
@@ -370,7 +393,31 @@ const copyText = (missionE) => {
       />
     </p>
   </CardBoxModal>
+  <CardBoxModal
+    v-model="isModalCreateCB"
+    v-if="_seletUser != null"
+    title="Mot de passe"
+    button="danger"
+  >
+    <p>Vous allez creer un controller de bureau</p>
 
+    <FormField label="Grouped with icons">
+      <FormControl v-model="name" :icon="mdiAccount" />
+      <FormControl v-model="phone" type="tel" placeholder="Your phone number" />
+
+      <FormControl v-model="password" type="password" :icon="mdiMail" />
+    </FormField>
+    <BaseButton
+      @click="creerController"
+      target="_blank"
+      :icon="mdiContentCopy"
+      :loading="loading"
+      label="Copy"
+      color="contrast"
+      rounded-full
+      small
+    />
+  </CardBoxModal>
   <LayoutAuthenticated>
     <SectionMain>
       <SectionTitleLineWithButton
