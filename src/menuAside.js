@@ -38,7 +38,23 @@ export default [
       },
     ],
   },
- 
+  {
+    to: "",
+
+    label: "Control",
+    icon: mdiHomeGroup,
+    menu: [
+      {
+        to: "/control/list",
+        label: "Liste des Controles",
+      },
+      {
+        to: "/control/sessions",
+        label: "Liste des sessions",
+      },
+    ],
+  },
+
   {
     to: "/utilisateurs",
     label: "Utilisateurs",

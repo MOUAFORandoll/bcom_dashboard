@@ -1,12 +1,12 @@
 <script setup>
 import {
-  mdiMonitorCellphone,
   mdiAccountSwitch,
-  mdiTableOff,
-  mdiReload,
+  mdiAsterisk,
   mdiCogOutline,
+  mdiAccount,
   mdiContentCopy,
   mdiLock,
+  mdiEye,
   mdiAccountAlertOutline,
   mdiGamepadCircle,
 } from "@mdi/js";
@@ -18,8 +18,7 @@ import SectionTitleLineWithButton from "@/components/SectionTitleLineWithButton.
 import FormControl from "@/components/FormControl.vue";
 
 import CardBoxComponentEmpty from "@/components/CardBoxComponentEmpty.vue";
-
-import { mdiEye, mdiTrashCan } from "@mdi/js";
+ 
 import CardBoxModal from "@/components/CardBoxModal.vue";
 import TableCheckboxCell from "@/components/TableCheckboxCell.vue";
 import BaseLevel from "@/components/BaseLevel.vue";
@@ -32,6 +31,7 @@ import { useMainStore } from "@/stores/main";
 import { onMounted, computed, ref } from "vue";
 import { RequestApi } from "@/boot/RequestApi";
 
+import FormField from "@/components/FormField.vue";
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 let request = new RequestApi();
@@ -58,17 +58,28 @@ const mainStore = useMainStore();
 
 async function creerController() {
   let data = {
-    name: name.value,
+    nom: name.value,
     phone: phone.value,
     password: password.value,
   };
   loading.value = true;
   const response = await request.NewControllerBureau(data);
   if (response.status) {
-    toast.success("Succes !", {
-      autoClose: 2000,
-    });
-    loading.value = false;
+    console.log(response.message);
+    if (response.message != "") {
+      toast.info(response.message, {
+        autoClose: 2000,
+      });
+      loading.value = false;
+    } else {
+      toast.success("Succes !", {
+        autoClose: 2000,
+      });
+      typeUser.value = 2;
+      getData();
+      isModalCreateCB.value = false;
+      loading.value = false;
+    }
   } else {
     toast.error("Une erreur est survenue !", {
       autoClose: 2000,
@@ -395,28 +406,48 @@ const copyText = (missionE) => {
   </CardBoxModal>
   <CardBoxModal
     v-model="isModalCreateCB"
-    v-if="_seletUser != null"
-    title="Mot de passe"
+    title="Creer un nouveau controller de bureau"
+    bg="purplePink"
     button="danger"
   >
     <p>Vous allez creer un controller de bureau</p>
 
-    <FormField label="Grouped with icons">
+    <FormField
+      label="Nom du controller"
+      help="Please enter the controller name"
+    >
       <FormControl v-model="name" :icon="mdiAccount" />
-      <FormControl v-model="phone" type="tel" placeholder="Your phone number" />
-
-      <FormControl v-model="password" type="password" :icon="mdiMail" />
     </FormField>
-    <BaseButton
-      @click="creerController"
-      target="_blank"
-      :icon="mdiContentCopy"
-      :loading="loading"
-      label="Copy"
-      color="contrast"
-      rounded-full
-      small
-    />
+    <FormField label="Login Phone" help="Please enter your phone">
+      <FormControl
+        v-model="phone"
+        :icon="mdiAccount"
+        name="login"
+        autocomplete="username"
+      />
+    </FormField>
+
+    <FormField label="Password" help="Please enter the password">
+      <FormControl
+        v-model="password"
+        :icon="mdiAsterisk"
+        type="password"
+        name="password"
+        autocomplete="current-password"
+      />
+    </FormField>
+
+    <!-- <FormCheckRadio v-model="remember" name="remember" label="Remember" :input-value="true" /> -->
+
+    <BaseButtons>
+      <BaseButton
+        @click="creerController"
+        type="submit"
+        :loading="loading"
+        color="info"
+        label="Creer"
+      />
+    </BaseButtons>
   </CardBoxModal>
   <LayoutAuthenticated>
     <SectionMain>
@@ -462,6 +493,7 @@ const copyText = (missionE) => {
           target="_blank"
           label="Ajouter Controleur de Bureau"
           color="contrast"
+          @click="isModalCreateCB = true"
           rounded-full
           small
         />
@@ -533,6 +565,12 @@ const copyText = (missionE) => {
                   <BaseButton
                     color="danger"
                     :icon="mdiAccountAlertOutline"
+                    small
+                    @click="setAction2(user)"
+                  />
+                  <BaseButton
+                    color="info"
+                    :icon="mdiEye"
                     small
                     @click="setAction2(user)"
                   />

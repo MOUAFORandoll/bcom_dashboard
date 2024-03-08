@@ -45,6 +45,22 @@ const routes = [
     name: "list_mission",
     component: () => import("@/views/Missions/MissionsList.vue"),
   },
+  {
+    meta: {
+      title: "sessions Control",
+    },
+    path: "/control/sessions",
+    name: "control_session",
+    component: () => import("@/views/Session/SessionListControl.vue"),
+  },
+  {
+    meta: {
+      title: "List Control",
+    },
+    path: "/control/list",
+    name: "control_list",
+    component: () => import("@/views/Session/ControlList.vue"),
+  },
 
   {
     meta: {
@@ -80,15 +96,32 @@ const routes = [
   },
   {
     meta: {
+      title: "Biker information",
+    },
+    path: "/biker-info",
+    name: "biker-info",
+    component: () => import("@/views/Politique.vue"),
+  },
+  {
+    meta: {
+      title: "Biker information",
+    },
+    path: "/controlleur-terrain-info",
+    name: "controlleur-terrain-info",
+    component: () => import("@/views/Politique.vue"),
+  },
+  {
+    meta: {
       title: "Error",
     },
-    path: "/error",
+    path: "/:catchAll(.*)*",
     name: "error",
     component: () => import("@/views/ErrorView.vue"),
   },
 ];
 
 const router = createRouter({
+  base: "/",
   history: createWebHistory(),
   routes,
   scrollBehavior(to, from, savedPosition) {

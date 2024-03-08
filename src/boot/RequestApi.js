@@ -58,7 +58,7 @@ export class RequestApi {
    */
   NewControllerBureau = async (data) => {
     // //console.log('sdddsd');
-    let dataRes = { status: true };
+    let dataRes = { status: true, message: "" };
 
     await api
       .post(this.ApiEndPoint.cbureau, data)
@@ -69,13 +69,15 @@ export class RequestApi {
           };
         } else {
           dataRes = {
-            status: false,
+            status: true,
+            message: response.data["message"],
           };
         }
       })
       .catch(() => {
         dataRes = {
           status: false,
+          message: "",
         };
       });
     return dataRes;
@@ -99,6 +101,80 @@ export class RequestApi {
 
     await api
       .post(this.ApiEndPoint.missions, data)
+      .then(async (response) => {
+        if (response.status == 201 || response.status == 200) {
+          dataRes = {
+            status: true,
+          };
+        } else {
+          dataRes = {
+            status: false,
+          };
+        }
+      })
+      .catch(() => {
+        dataRes = {
+          status: false,
+        };
+      });
+    return dataRes;
+  };
+
+  /**
+   *
+   *
+   * update  Mission
+   *
+   *
+   */
+  /**
+   *
+   * @param {*}
+   * @returns
+   */
+  UpdateMission = async (data) => {
+    // //console.log('sdddsd');
+    let dataRes = { status: true };
+
+    await api
+      .patch(this.ApiEndPoint.missions, data)
+      .then(async (response) => {
+        if (response.status == 201 || response.status == 200) {
+          dataRes = {
+            status: true,
+          };
+        } else {
+          dataRes = {
+            status: false,
+          };
+        }
+      })
+      .catch(() => {
+        dataRes = {
+          status: false,
+        };
+      });
+    return dataRes;
+  };
+
+  /**
+   *
+   *
+   * Status  Mission
+   *
+   *
+   */
+  /**
+   *
+   * @param {*}
+   * @returns
+   */
+  statusMission = async (data) => {
+    // //console.log('sdddsd');
+    let dataRes = { status: true };
+
+    await api
+      .post(this.ApiEndPoint.missions + "/status", data)
       .then(async (response) => {
         if (response.status == 201 || response.status == 200) {
           dataRes = {
@@ -306,6 +382,68 @@ export class RequestApi {
    * @param {*}
    * @returns
    */
+  getMissionsSessionList = async () => {
+    // //console.log('sdddsd');
+    let dataRes = { status: true, data: [] };
+
+    await api
+      .get(this.ApiEndPoint.cbureau + "/list-mission-session")
+      .then(async (response) => {
+        if (response.status == 201 || response.status == 200) {
+          dataRes = {
+            status: true,
+            data: response.data.data,
+          };
+        } else {
+          dataRes = {
+            status: false,
+          };
+        }
+      })
+      .catch(() => {
+        dataRes = {
+          status: false,
+        };
+      });
+    return dataRes;
+  };
+
+  /**
+   *
+   * @param {*}
+   * @returns
+   */
+  getMissionsControlList = async () => {
+    // //console.log('sdddsd');
+    let dataRes = { status: true, data: [] };
+
+    await api
+      .get(this.ApiEndPoint.cbureau + "/list-control")
+      .then(async (response) => {
+        if (response.status == 201 || response.status == 200) {
+          dataRes = {
+            status: true,
+            data: response.data.data,
+          };
+        } else {
+          dataRes = {
+            status: false,
+          };
+        }
+      })
+      .catch(() => {
+        dataRes = {
+          status: false,
+        };
+      });
+    return dataRes;
+  };
+
+  /**
+   *
+   * @param {*}
+   * @returns
+   */
   AnnulControlBiker = async (data) => {
     // //console.log('sdddsd');
     let dataRes = { status: true };
@@ -392,31 +530,6 @@ export class RequestApi {
 
   /////
 
-  /**
-   *
-   * @param {*} livraisons
-   * @returns retourne les  livraisons en attente
-   */
-  getLivraisonsAwaiting = async () => {
-    let dataRes = { status: true, data: [] };
-
-    await api
-      .get(this.ApiEndPoint.livraisons + "/awaiting")
-      .then(async (response) => {
-        dataRes = {
-          status: true,
-          data: response.data.data,
-        };
-      })
-      .catch(() => {
-        dataRes = {
-          status: false,
-          data: [],
-        };
-      });
-
-    return dataRes;
-  };
   /**
    *
    * @returns retourne les  biker

@@ -20,34 +20,36 @@ import FormControl from "@/components/FormControl.vue";
 
 import { onMounted, computed, ref } from "vue";
 import { RequestApi } from "@/boot/RequestApi";
-let request = new RequestApi();
-
+import { useMainStore } from "@/stores/main";
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 const isModalActive = ref(false);
+let request = new RequestApi();
 
 const perPage = ref(5);
 
 const currentPage = ref(0);
-let listMissions = ref([]);
+let listMissionsSessionBiker = ref([]);
 let loading = ref(true);
 let reloading = ref(true);
 let loadingUpdate = ref(false);
 let isModalStatusMission = ref(false);
 let isModalUpdateMission = ref(false);
-let mission = ref({ id: "" });
-let keySecretBabana = ref("");
-
+let mission_session = ref({ id: "" });
+let controller_terrain = ref(null);
+let listUsersControllerterraint = ref([]);
 let titre = ref("");
 let point = ref("");
 let description = ref("");
 const itemsPaginated = computed(() =>
-  listMissions.value.slice(
+  listMissionsSessionBiker.value.slice(
     perPage.value * currentPage.value,
     perPage.value * (currentPage.value + 1)
   )
 );
 
 const numPages = computed(() =>
-  Math.ceil(listMissions.value.length / perPage.value)
+  Math.ceil(listMissionsSessionBiker.value.length / perPage.value)
 );
 
 const currentPageHuman = computed(() => currentPage.value + 1);
@@ -63,15 +65,35 @@ const pagesList = computed(() => {
 });
 
 onMounted(async () => {
-  await getMissionsList();
+  await getMissionsSessionList();
+  await getListCTerrain();
 });
 
-async function getMissionsList() {
-  const response = await request.ListMission();
+async function getListCTerrain() {
+  const response = await request.getListCTerrain();
   if (response.status) {
+    loading.value = false;
+    // listUsersControllerterraint.value = response.data;
+    response.data.forEach((element) => {
+      listUsersControllerterraint.value.push({
+        id: element.id,
+        label: element.nom,
+        keySecret: element.keySecret,
+      });
+    });
+    console.log(listUsersControllerterraint.value);
+  } else {
+    loading.value = false;
+  }
+}
+async function getMissionsSessionList() {
+  console.log("----------------start-----");
+  const response = await request.getMissionsSessionList();
+  if (response.status) {
+    console.log("----------------end-----");
     reloading.value = false;
     loading.value = false;
-    listMissions.value = response.data;
+    listMissionsSessionBiker.value = response.data;
   } else {
     reloading.value = false;
     loading.value = false;
@@ -80,39 +102,23 @@ async function getMissionsList() {
 async function actualiser() {
   reloading.value = true;
 
-  await getMissionsList();
+  await getMissionsSessionList();
 }
 
-const changeStatus = async () => {
-  console.log("-------------data");
+const affectController = async () => {
+  const mainStore = useMainStore();
   loadingUpdate.value = true;
   let data = {
-    missionId: mission.value.id,
+    keySecretCbureau: mainStore.keySecret,
+    keySecretCterrain: controller_terrain.value.keySecret,
+    idMissionSession: mission_session.value.id,
   };
   console.log(data);
-  const response = await request.statusMission(data);
+  const response = await request.NewControlBiker(data);
   console.log(response);
   if (response.status) {
     actualiser();
     isModalStatusMission.value = false;
-    loadingUpdate.value = false;
-  } else {
-    loadingUpdate.value = false;
-  }
-};
-async function updateMission() {
-  loadingUpdate.value = true;
-  let data = {
-    missionId: mission.value.id,
-    libelle: titre.value,
-    description: description.value,
-    nbre_point: point.value,
-  };
-  const response = await request.NewMission(data);
-  console.log(response.status);
-  if (response.status == true) {
-    actualiser();
-    isModalUpdateMission.value = false;
     loadingUpdate.value = false;
     toast.success("Succes !", {
       autoClose: 2000,
@@ -123,92 +129,38 @@ async function updateMission() {
       autoClose: 2000,
     });
   }
-}
-const selectMissionFStatus = (missionS) => {
-  mission.value = missionS;
-  isModalStatusMission.value = true;
 };
-const selectMissionFUpdate = (missionS) => {
-  mission.value = missionS;
-
-  titre.value = mission.value.libelle;
-  point.value = mission.value.nbre_point;
-  description.value = mission.value.description;
-  isModalUpdateMission.value = true;
+const selectMissionFStatus = (missionS) => {
+  console.log(missionS);
+  mission_session.value = missionS;
+  isModalStatusMission.value = true;
 };
 </script>
 
 <template>
   <CardBoxModal
-    v-model="isModalUpdateMission"
-    v-if="mission != null"
-    title="Informations de la mission"
-    button="danger"
-  >
-    <p>
-      Vous allez mettre a jour les informations de La mission
-
-      <b>{{ mission.libelle }}</b>
-    </p>
-
-    <FormField
-      label="Titre de la mission"
-      help="Please enter your mission title"
-    >
-      <FormControl
-        v-model="titre"
-        :icon="mdiAccount"
-        name="login"
-        autocomplete="username"
-      />
-    </FormField>
-    <FormField label="Nombre de points de la mission" help="">
-      <FormControl
-        v-model="point"
-        :icon="mdiAccount"
-        name="point"
-        autocomplete="username"
-      />
-    </FormField>
-    <FormField
-      label="Description"
-      help="Please enter a description of your mission"
-    >
-      <FormControl
-        v-model="description"
-        type="textarea"
-        :icon="mdiAsterisk"
-        name="password"
-        autocomplete="current-password"
-      />
-    </FormField>
-
-    <BaseButtons>
-      <BaseButton
-        label="Mettre a jour la mission"
-        :loading="loadingUpdate"
-        color="info"
-        @click="updateMission"
-    /></BaseButtons>
-  </CardBoxModal>
-  <CardBoxModal
     v-model="isModalStatusMission"
-    v-if="mission != null"
-    title="Status de la mission"
+    title="Selectionner controller"
     button="danger"
   >
-    <p>
-      Vous allez
-      {{ mission.status == true ? "desactiver" : "activer" }} La mission
+    <p>Vous allez affecter un controller a cette session de mission</p>
 
-      <b>{{ mission.libelle }}</b>
-    </p>
+    <FormField label="Selectionner un controller">
+      <FormControl
+        placeholder="Selectionner un controller"
+        v-model="controller_terrain"
+        :options="listUsersControllerterraint"
+      />
+    </FormField>
 
     <BaseButton
-      label="Confirmer"
+      target="_blank"
       :loading="loadingUpdate"
-      color="info"
-      @click="changeStatus"
+      :icon="mdiCogOutline"
+      label="Affecter"
+      color="bg-blue-400"
+      small
+      @click="affectController"
     />
   </CardBoxModal>
 
@@ -216,7 +168,7 @@ const selectMissionFUpdate = (missionS) => {
     <SectionMain>
       <SectionTitleLineWithButton
         :icon="mdiHomeGroup"
-        title="Liste des missions"
+        title="Liste des sessions de missions"
         main
       >
         <BaseButton
@@ -237,31 +189,35 @@ const selectMissionFUpdate = (missionS) => {
           <thead>
             <tr>
               <th>Titre de la mission</th>
-              <th>Description de la mission</th>
-              <th>Nombre de point de la mission</th>
-              <th>Date de Creation de la mission</th>
+
+              <th>Nom du Biker</th>
+              <th>Phone du Biker</th>
+              <th>Date debut session</th>
 
               <th>Status</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="mission in itemsPaginated" :key="mission.id">
+            <tr
+              v-for="mission_session in itemsPaginated"
+              :key="mission_session.id"
+            >
               <td data-label="libelle">
-                {{ mission.libelle }}
+                {{ mission_session.mission.libelle }}
               </td>
-              <td data-label="description">
-                {{ mission.description }}
+              <td data-label="name">
+                {{ mission_session.biker.name }}
               </td>
-              <td data-label="nbre_point">
-                {{ mission.nbre_point }}
+              <td data-label="phone">
+                {{ mission_session.biker.phone }}
               </td>
 
-              <td data-label="dateCreated">
-                {{ mission.date_created }}
+              <td data-label="date_start">
+                {{ mission_session.date_start }}
               </td>
               <td data-label="Status">
-                {{ mission.status == true ? "En Cours" : "Terminee" }}
+                {{ mission_session.status == true ? "En Cours" : "Terminee" }}
               </td>
               <td class="before:hidden lg:w-1 whitespace-nowrap">
                 <BaseButtons type="justify-start lg:justify-end" no-wrap>
@@ -271,15 +227,7 @@ const selectMissionFUpdate = (missionS) => {
                     color="danger"
                     :icon="mdiLock"
                     small
-                    @click="selectMissionFStatus(mission)"
-                  />
-                  <BaseButton
-                    class="mx-1"
-                    :loading="loadingUpdate"
-                    color="info"
-                    :icon="mdiAccountAlertOutline"
-                    small
-                    @click="selectMissionFUpdate(mission)"
+                    @click="selectMissionFStatus(mission_session)"
                   />
                 </BaseButtons>
               </td>

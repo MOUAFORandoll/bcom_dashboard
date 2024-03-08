@@ -63,11 +63,11 @@ const pagesList = computed(() => {
 });
 
 onMounted(async () => {
-  await getMissionsList();
+  await getMissionsControlList();
 });
 
-async function getMissionsList() {
-  const response = await request.ListMission();
+async function getMissionsControlList() {
+  const response = await request.getMissionsControlList();
   if (response.status) {
     reloading.value = false;
     loading.value = false;
@@ -80,26 +80,26 @@ async function getMissionsList() {
 async function actualiser() {
   reloading.value = true;
 
-  await getMissionsList();
+  await getMissionsControlList();
 }
 
-const changeStatus = async () => {
-  console.log("-------------data");
-  loadingUpdate.value = true;
-  let data = {
-    missionId: mission.value.id,
-  };
-  console.log(data);
-  const response = await request.statusMission(data);
-  console.log(response);
-  if (response.status) {
-    actualiser();
-    isModalStatusMission.value = false;
-    loadingUpdate.value = false;
-  } else {
-    loadingUpdate.value = false;
-  }
-};
+// const changeStatus = async () => {
+//   console.log("-------------data");
+//   loadingUpdate.value = true;
+//   let data = {
+//     missionId: mission.value.id,
+//   };
+//   console.log(data);
+//   const response =  await request.ActiveControlBiker(data);
+//   console.log(response);
+//   if (response.status) {
+//     actualiser();
+//     isModalStatusMission.value = false;
+//     loadingUpdate.value = false;
+//   } else {
+//     loadingUpdate.value = false;
+//   }
+// };
 async function updateMission() {
   loadingUpdate.value = true;
   let data = {
@@ -194,14 +194,13 @@ const selectMissionFUpdate = (missionS) => {
   <CardBoxModal
     v-model="isModalStatusMission"
     v-if="mission != null"
-    title="Status de la mission"
+    title="Status de la mission de controle"
     button="danger"
   >
     <p>
       Vous allez
-      {{ mission.status == true ? "desactiver" : "activer" }} La mission
-
-      <b>{{ mission.libelle }}</b>
+      {{ mission.status == true ? "desactiver" : "activer" }} La mission de
+      control
     </p>
 
     <BaseButton
@@ -216,7 +215,7 @@ const selectMissionFUpdate = (missionS) => {
     <SectionMain>
       <SectionTitleLineWithButton
         :icon="mdiHomeGroup"
-        title="Liste des missions"
+        title="Liste des Controles"
         main
       >
         <BaseButton
@@ -237,33 +236,62 @@ const selectMissionFUpdate = (missionS) => {
           <thead>
             <tr>
               <th>Titre de la mission</th>
-              <th>Description de la mission</th>
-              <th>Nombre de point de la mission</th>
-              <th>Date de Creation de la mission</th>
+              <th>Nom du controller</th>
+              <th>Phone du controller</th>
+              <th>Nom du biker</th>
+              <th>Phone du controller</th>
+              <th>Note du bike</th>
+              <th>Status de la mission de control</th>
+              <th>Date de Creation de la mission de control</th>
+              <th>Date de debut de la mission de control</th>
+              <th>Date de fin de la mission de control</th>
 
-              <th>Status</th>
-              <th>Action</th>
+              <!-- <th>Action</th> -->
             </tr>
           </thead>
           <tbody>
-            <tr v-for="mission in itemsPaginated" :key="mission.id">
+            <tr
+              v-for="mission_control in itemsPaginated"
+              :key="mission_control.id"
+            >
               <td data-label="libelle">
-                {{ mission.libelle }}
+                {{ mission_control.mission.libelle }}
               </td>
-              <td data-label="description">
-                {{ mission.description }}
+              <td data-label="name">
+                {{ mission_control.controller.name }}
               </td>
-              <td data-label="nbre_point">
-                {{ mission.nbre_point }}
+              <td data-label="Phone">
+                {{ mission_control.controller.phone }}
+              </td>
+              <td data-label="name0">
+                {{ mission_control.biker.name }}
+              </td>
+              <td data-label="Phone">
+                {{ mission_control.biker.phone }}
+              </td>
+              <td data-label="note">
+                {{ mission_control.note }}
               </td>
 
-              <td data-label="dateCreated">
-                {{ mission.date_created }}
-              </td>
               <td data-label="Status">
-                {{ mission.status == true ? "En Cours" : "Terminee" }}
+                {{
+                  mission_control.status == 0
+                    ? "En attente du controller"
+                    : mission_control.status == 1
+                    ? "En Cours"
+                    : "Terminee"
+                }}
               </td>
-              <td class="before:hidden lg:w-1 whitespace-nowrap">
+              <td data-label="dateCreated">
+                {{ mission_control.date_created }}
+              </td>
+              <td data-label="date_start">
+                {{ mission_control.date_start }}
+              </td>
+              <td data-label="date_end">
+                {{ mission_control.date_end }}
+              </td>
+              <!-- <td class="before:hidden lg:w-1 whitespace-nowrap">
                 <BaseButtons type="justify-start lg:justify-end" no-wrap>
                   <BaseButton
                     class="mx-1"
@@ -271,18 +299,10 @@ const selectMissionFUpdate = (missionS) => {
                     color="danger"
                     :icon="mdiLock"
                     small
-                    @click="selectMissionFStatus(mission)"
-                  />
-                  <BaseButton
-                    class="mx-1"
-                    :loading="loadingUpdate"
-                    color="info"
-                    :icon="mdiAccountAlertOutline"
-                    small
-                    @click="selectMissionFUpdate(mission)"
+                    @click="selectMissionFStatus(mission_control)"
                   />
                 </BaseButtons>
-              </td>
+              </td> -->
             </tr>
           </tbody>
         </table>
