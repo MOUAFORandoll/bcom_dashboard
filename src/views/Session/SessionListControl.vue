@@ -73,7 +73,7 @@ async function getListCTerrain() {
   const response = await request.getListCTerrain();
   if (response.status) {
     loading.value = false;
-    // listUsersControllerterraint.value = response.data;
+    listUsersControllerterraint.value = [];
     response.data.forEach((element) => {
       listUsersControllerterraint.value.push({
         id: element.id,

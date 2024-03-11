@@ -653,4 +653,64 @@ export class RequestApi {
     //console.log(dataRes)
     return dataRes;
   };
+
+  /**
+   *
+   * @param {*}
+   * @returns
+   */
+  NewSecteur = async (data) => {
+    // //console.log('sdddsd');
+    let dataRes = { status: true };
+
+    await api
+      .post(this.ApiEndPoint.secteur + "/new", data)
+      .then(async (response) => {
+        if (response.status == 201 || response.status == 200) {
+          dataRes = {
+            status: true,
+          };
+        } else {
+          dataRes = {
+            status: false,
+          };
+        }
+      })
+      .catch(() => {
+        dataRes = {
+          status: false,
+        };
+      });
+    return dataRes;
+  };
+
+  /**
+   *
+   * @param {*}
+   * @returns
+   */
+  ListSecteur = async (data) => {
+    let dataRes = { status: true };
+
+    await api
+      .get(this.ApiEndPoint.secteur + "/read", data)
+      .then(async (response) => {
+        if (response.status == 201 || response.status == 200) {
+          dataRes = {
+            status: true,
+            data: response.data.data,
+          };
+        } else {
+          dataRes = {
+            status: false,
+          };
+        }
+      })
+      .catch(() => {
+        dataRes = {
+          status: false,
+        };
+      });
+    return dataRes;
+  };
 }

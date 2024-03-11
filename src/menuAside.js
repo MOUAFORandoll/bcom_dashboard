@@ -36,6 +36,10 @@ export default [
         to: "/mission/list",
         label: "Liste des Missions",
       },
+      {
+        to: "/secteur/list",
+        label: "Liste des Secteurs",
+      },
     ],
   },
   {

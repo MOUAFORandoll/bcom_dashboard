@@ -1,10 +1,5 @@
 <script setup>
-import {
-  mdiAccountAlertOutline,
-  mdiReload,
-  mdiLock,
-  mdiAccount,
-} from "@mdi/js";
+import { mdiAccountAlertOutline, mdiPlus, mdiLock, mdiAccount } from "@mdi/js";
 import SectionMain from "@/components/SectionMain.vue";
 import CardBox from "@/components/CardBox.vue";
 import LayoutAuthenticated from "@/layouts/LayoutAuthenticated.vue";
@@ -17,7 +12,10 @@ import BaseButton from "@/components/BaseButton.vue";
 // import UserAvatar from "@/components/UserAvatar.vue";
 import FormField from "@/components/FormField.vue";
 import FormControl from "@/components/FormControl.vue";
+import { useMainStore } from "@/stores/main";
 
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 import { onMounted, computed, ref } from "vue";
 import { RequestApi } from "@/boot/RequestApi";
 let request = new RequestApi();
@@ -25,29 +23,45 @@ let request = new RequestApi();
 const isModalActive = ref(false);
 
 const perPage = ref(5);
-
+let listMissionsSessionBiker = ref([]);
 const currentPage = ref(0);
-let listMissions = ref([]);
+async function getMissionsControlList() {
+  console.log("----------------start-----");
+  const response = await request.getMissionsControlList();
+  if (response.status) {
+    console.log("----------------end-----");
+    reloading.value = false;
+    loading.value = false;
+    listMissionsSessionBiker.value = response.data;
+  } else {
+    reloading.value = false;
+    loading.value = false;
+  }
+}
+let listSecteur = ref([]);
 let loading = ref(true);
 let reloading = ref(true);
 let loadingUpdate = ref(false);
-let isModalStatusMission = ref(false);
-let isModalUpdateMission = ref(false);
+let isModalNewControl = ref(false);
+let controller_terrain = ref({ id: "" });
+let secteur = ref({ id: "" });
 let mission = ref({ id: "" });
 let keySecretBabana = ref("");
+let listUsersControllerterraint = ref([]);
+let listMissions = ref([]);
 
 let titre = ref("");
 let point = ref("");
 let description = ref("");
 const itemsPaginated = computed(() =>
-  listMissions.value.slice(
+  listMissionsSessionBiker.value.slice(
     perPage.value * currentPage.value,
     perPage.value * (currentPage.value + 1)
   )
 );
 
 const numPages = computed(() =>
-  Math.ceil(listMissions.value.length / perPage.value)
+  Math.ceil(listMissionsSessionBiker.value.length / perPage.value)
 );
 
 const currentPageHuman = computed(() => currentPage.value + 1);
@@ -64,150 +78,123 @@ const pagesList = computed(() => {
 
 onMounted(async () => {
   await getMissionsControlList();
+
+  await getListSecteur();
+  await getListCTerrain();
+  await getMissionsList();
 });
 
-async function getMissionsControlList() {
-  const response = await request.getMissionsControlList();
+async function getMissionsList() {
+  const response = await request.ListMission();
   if (response.status) {
     reloading.value = false;
     loading.value = false;
-    listMissions.value = response.data;
+
+    response.data.forEach((element) => {
+      listMissions.value.push({
+        id: element.id,
+        label: element.libelle,
+      });
+    });
   } else {
     reloading.value = false;
     loading.value = false;
   }
 }
-async function actualiser() {
-  reloading.value = true;
-
-  await getMissionsControlList();
+async function getListCTerrain() {
+  const response = await request.getListCTerrain();
+  if (response.status) {
+    loading.value = false;
+    listUsersControllerterraint.value = [];
+    response.data.forEach((element) => {
+      listUsersControllerterraint.value.push({
+        id: element.id,
+        label: element.nom,
+        keySecret: element.keySecret,
+      });
+    });
+    console.log(listUsersControllerterraint.value);
+  } else {
+    loading.value = false;
+  }
 }
 
-// const changeStatus = async () => {
-//   console.log("-------------data");
-//   loadingUpdate.value = true;
-//   let data = {
-//     missionId: mission.value.id,
-//   };
-//   console.log(data);
-//   const response =  await request.ActiveControlBiker(data);
-//   console.log(response);
-//   if (response.status) {
-//     actualiser();
-//     isModalStatusMission.value = false;
-//     loadingUpdate.value = false;
-//   } else {
-//     loadingUpdate.value = false;
-//   }
-// };
-async function updateMission() {
+async function getListSecteur() {
+  const response = await request.ListSecteur();
+  if (response.status) {
+    listSecteur.value = [];
+    response.data.forEach((element) => {
+      listSecteur.value.push({
+        id: element.id,
+        label: element.libelle,
+      });
+    });
+  } else {
+  }
+}
+
+const affectController = async () => {
+  const mainStore = useMainStore();
   loadingUpdate.value = true;
   let data = {
-    missionId: mission.value.id,
-    libelle: titre.value,
-    description: description.value,
-    nbre_point: point.value,
+    keySecretCbureau: mainStore.keySecret,
+    keySecretCterrain: controller_terrain.value.keySecret,
+    idSecteur: secteur.value.id,
+    idMission: mission.value.id,
   };
-  const response = await request.NewMission(data);
-  console.log(response.status);
-  if (response.status == true) {
-    actualiser();
-    isModalUpdateMission.value = false;
+  console.log(data);
+  const response = await request.NewControlBiker(data);
+  console.log(response);
+  if (response.status) {
+    isModalNewControl.value = false;
     loadingUpdate.value = false;
     toast.success("Succes !", {
       autoClose: 2000,
     });
+    await getMissionsControlList();
   } else {
     loadingUpdate.value = false;
     toast.error("Une erreur est survenue !", {
       autoClose: 2000,
     });
   }
-}
-const selectMissionFStatus = (missionS) => {
-  mission.value = missionS;
-  isModalStatusMission.value = true;
-};
-const selectMissionFUpdate = (missionS) => {
-  mission.value = missionS;
-
-  titre.value = mission.value.libelle;
-  point.value = mission.value.nbre_point;
-  description.value = mission.value.description;
-  isModalUpdateMission.value = true;
 };
 </script>
 
 <template>
   <CardBoxModal
-    v-model="isModalUpdateMission"
-    v-if="mission != null"
-    title="Informations de la mission"
+    v-model="isModalNewControl"
+    title="Nouvelle mission de controle"
     button="danger"
   >
-    <p>
-      Vous allez mettre a jour les informations de La mission
-
-      <b>{{ mission.libelle }}</b>
-    </p>
-
-    <FormField
-      label="Titre de la mission"
-      help="Please enter your mission title"
-    >
+    <p>Vous allez demarrer une mission de control</p>
+    <FormField label="Selectionner la mission">
       <FormControl
-        v-model="titre"
-        :icon="mdiAccount"
-        name="login"
-        autocomplete="username"
+        placeholder="Selectionner la mission"
+        v-model="mission"
+        :options="listMissions"
       />
     </FormField>
-    <FormField label="Nombre de points de la mission" help="">
+    <FormField label="Selectionner un controller">
       <FormControl
-        v-model="point"
-        :icon="mdiAccount"
-        name="point"
-        autocomplete="username"
+        placeholder="Selectionner un controller"
+        v-model="controller_terrain"
+        :options="listUsersControllerterraint"
       />
     </FormField>
-    <FormField
-      label="Description"
-      help="Please enter a description of your mission"
-    >
+    <FormField label="Selectionner un secteur">
       <FormControl
-        v-model="description"
-        type="textarea"
-        :icon="mdiAsterisk"
-        name="password"
-        autocomplete="current-password"
+        placeholder="Selectionner un secteur"
+        v-model="secteur"
+        :options="listSecteur"
       />
     </FormField>
-
-    <BaseButtons>
-      <BaseButton
-        label="Mettre a jour la mission"
-        :loading="loadingUpdate"
-        color="info"
-        @click="updateMission"
-    /></BaseButtons>
-  </CardBoxModal>
-  <CardBoxModal
-    v-model="isModalStatusMission"
-    v-if="mission != null"
-    title="Status de la mission de controle"
-    button="danger"
-  >
-    <p>
-      Vous allez
-      {{ mission.status == true ? "desactiver" : "activer" }} La mission de
-      control
-    </p>
 
     <BaseButton
       label="Confirmer"
       :loading="loadingUpdate"
       color="info"
-      @click="changeStatus"
+      @click="affectController"
     />
   </CardBoxModal>
 
@@ -219,14 +206,13 @@ const selectMissionFUpdate = (missionS) => {
         main
       >
         <BaseButton
-          :loading="reloading"
           target="_blank"
-          :icon="mdiReload"
-          label="Actualise"
+          :icon="mdiPlus"
+          label="Ajouter"
           color="contrast"
           rounded-full
           small
-          @click="actualiser()"
+          @click="isModalNewControl = !isModalNewControl"
         />
       </SectionTitleLineWithButton>
 
@@ -237,16 +223,13 @@ const selectMissionFUpdate = (missionS) => {
             <tr>
               <th>Titre de la mission</th>
               <th>Nom du controller</th>
+
               <th>Phone du controller</th>
-              <th>Nom du biker</th>
-              <th>Phone du controller</th>
-              <th>Note du bike</th>
+              <th>Nom du Secteur</th>
               <th>Status de la mission de control</th>
               <th>Date de Creation de la mission de control</th>
               <th>Date de debut de la mission de control</th>
               <th>Date de fin de la mission de control</th>
-
-              <!-- <th>Action</th> -->
             </tr>
           </thead>
           <tbody>
@@ -263,14 +246,9 @@ const selectMissionFUpdate = (missionS) => {
               <td data-label="Phone">
                 {{ mission_control.controller.phone }}
               </td>
-              <td data-label="name0">
-                {{ mission_control.biker.name }}
-              </td>
-              <td data-label="Phone">
-                {{ mission_control.biker.phone }}
-              </td>
-              <td data-label="note">
-                {{ mission_control.note }}
+
+              <td data-label="Secteur">
+                {{ mission_control.secteur.libelle }}
               </td>
 
               <td data-label="Status">

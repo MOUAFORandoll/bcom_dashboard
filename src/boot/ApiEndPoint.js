@@ -6,6 +6,7 @@ export class ApiEndPoint {
   cterrain = "/cterrain";
   cterrain = "/biker";
   missions = "/missions";
+  secteur = "/secteur";
   // agregateur_read_all = "/agregateur/read/all";
   // agregateur_read_unique = "/agregateur/read/unique";
 

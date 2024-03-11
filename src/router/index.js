@@ -39,6 +39,14 @@ const routes = [
   },
   {
     meta: {
+      title: "Liste des Secteurs",
+    },
+    path: "/secteur/list",
+    name: "list_secteur",
+    component: () => import("@/views/Missions/SecteurList.vue"),
+  },
+  {
+    meta: {
       title: "Missions En cours",
     },
     path: "/mission/list",
